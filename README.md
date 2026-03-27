@@ -1,195 +1,116 @@
-# 📍 Human-Centric DigiPIN Upgrade
+# DigiPIN — Grid Address Encoder
 
-> A hybrid, habitat-aware digital addressing system for India  
-> Combining **PIN codes + short alphabetic grid codes** for precision and usability
-
----
-
-## 🚀 Overview
-
-This project proposes a **human-friendly upgrade to DigiPIN**, India’s digital geocoding system.
-
-It introduces a **hybrid address format**:
-
-
-### ✨ Example
-
-- `110001` → Familiar postal PIN code  
-- `BTQK` → Precise grid-level location  
-
-✅ Easy to remember  
-✅ Easy to communicate  
-✅ High spatial accuracy  
+A Flask + Leaflet web application that lets users click on a map (or search for an address) to generate a **10-character DigiPIN** for any 4 m × 4 m grid cell in India.
 
 ---
 
-## ❗ Problem
+## DigiPIN format
 
-India’s addressing system is:
-- ❌ Unstructured (landmarks, informal descriptions)
-- ❌ Ambiguous (duplicate locality names)
-- ❌ Inefficient for logistics & emergency services
-
-### Current DigiPIN Issues:
-- Hard-to-remember 10-character codes
-- High typing and communication errors
-- No human-readable structure
+```
+110001  ABCD
+└──┬──┘ └─┬─┘
+6-digit    4-letter Morton
+pincode    grid code
+```
 
 ---
 
-## 💡 Solution
+## Project structure
 
-### 🔹 Hybrid Addressing
-- Retains **existing PIN codes**
-- Adds **4-letter grid code** for precision
-
----
-
-### 🔤 Alphabetic Encoding
-- Base-26 system (A–Z)
-- 4 letters → **456,976 unique locations per PIN**
-- Example:Index → Code
-19010 → BVJY
-
-- 
----
-
-### 🌍 Adaptive Grid System
-
-Grid resolution changes based on population density:
-
-| Zone | Area Type | Grid Size |
-|------|----------|----------|
-| A | Urban | 4×4 m |
-| B | Semi-urban | 8×8 m |
-| C | Rural | 16×16 m |
-| D | Remote | 64×64 m |
-
-✅ Optimized performance  
-✅ Reduced data overhead  
-✅ Context-aware precision  
+```
+digipin/
+├── app.py              ← Flask routes (entry point)
+├── encoding.py         ← All 4 encoding functions  ← REPLACE with your impl
+├── geo_utils.py        ← Pincode boundary spatial index
+├── requirements.txt
+├── data/
+│   └── pincode_boundary.geojson   ← Drop your GeoJSON here
+├── templates/
+│   └── index.html      ← Jinja2 template
+└── static/
+    ├── css/style.css
+    └── js/map.js
+```
 
 ---
 
-### 🧭 Spatial Indexing
-- Uses **Morton (Z-order curve)**
-- Converts 2D → 1D efficiently
-- Preserves locality (nearby places → similar codes)
+## Setup
+
+```bash
+# 1. Install dependencies
+pip install -r requirements.txt
+
+# 2. Place your GeoJSON
+cp /path/to/pincode_boundary.geojson data/pincode_boundary.geojson
+
+# 3. Plug in your encoding functions
+#    Open encoding.py and replace the bodies of:
+#      lonlat_to_meters_delta()
+#      morton_interleave_32bit()
+#      to_base26_4letters()
+#      encode_digipin()
+
+# 4. Run
+python app.py
+# → http://127.0.0.1:5000
+```
+
+For production:
+```bash
+gunicorn -w 4 -b 0.0.0.0:8000 app:app
+```
 
 ---
 
-## ⚙️ Features
+## API reference
 
-- 🔄 Encode: `(lat, long, PIN)` → `PIN + code`
-- 🔁 Decode: `PIN + code` → coordinates
-- 🗺️ Grid visualization
-- 🔌 REST API support
-- 📱 Offline & mobile-friendly
+### `POST /api/encode`
+**Body** `{ "lat": 28.6139, "lon": 77.2090 }`
 
----
+**Response**
+```json
+{
+  "digipin":      "110001ABCD",
+  "pincode":      "110001",
+  "grid_letters": "ABCD",
+  "grid_size_m":  4,
+  "cell": {
+    "sw":     [28.613896, 77.208984],
+    "ne":     [28.613932, 77.209021],
+    "center": [28.613914, 77.209003]
+  },
+  "found": true
+}
+```
 
-## 🎯 Benefits
+### `GET /api/boundaries`
+Returns GeoJSON `FeatureCollection` of all pincode polygons.
 
-### 🧠 Human-Friendly
-- Short, memorable codes
-- Lower error rates
-- Works in low-literacy environments
-
-### 📦 Logistics
-- Faster deliveries
-- Reduced failure rates
-
-### 🚑 Emergency Response
-- Accurate and quick location access
-
-### 🏛️ Governance
-- Better welfare targeting
-- Seamless integration with existing systems
-
----
-
-## 📊 Impact
-
-- 📉 Reduces losses from address ambiguity  
-- 🌍 Improves rural accessibility  
-- ⚡ Enables scalable national infrastructure  
+### `GET /api/boundary/<pincode>`
+Returns GeoJSON `Feature` for a single pincode.
 
 ---
 
-## 🧪 Research Contributions
+## Replacing the encoding functions
 
-- Hybrid geocoding model (hierarchical + adaptive)
-- Habitat-aware grid zoning
-- Human-centric encoding design
-- Comparative evaluation with:
-- DigiPIN
-- Plus Codes
-- What3Words
+`encoding.py` is intentionally isolated. All four functions have clearly typed
+signatures and docstrings. Drop your implementations in and the rest of the app
+picks them up automatically — no other file needs changing.
 
----
+The only constant you may want to adjust:
 
-## 🗺️ Roadmap
-
-| Phase | Duration | Focus |
-|------|--------|------|
-| Phase 1 | 0–6 months | Data & design |
-| Phase 2 | 6–12 months | Core system |
-| Phase 3 | 12–18 months | Testing & API |
-| Phase 4 | 18–24 months | Scaling |
+```python
+GRID_SIZE_M: int = 4   # metres per grid cell side
+```
 
 ---
 
-## ⚠️ Challenges
+## Notes
 
-- PIN boundary mapping
-- Adaptive grid optimization
-- Typo-resistant encoding
-- System integration
-
----
-
-## 🔐 Ethics & Privacy
-
-- No personal data stored
-- Privacy-first design
-- Open & transparent system
-- Inclusive for all user groups
-
----
-
-## 🔮 Future Scope
-
-- 🎙️ Voice-based addressing
-- 📱 QR-based location sharing
-- 🧠 AI-powered routing systems
-- 🇮🇳 National digital address registry
-
----
-
-## 📚 Reference
-
-Based on research proposal:  
-**"From Confusion to Precision: A Human-Friendly, Habitat-Aware Upgrade to DigiPIN"**
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome!
-
-1. Fork the repo  
-2. Create a new branch  
-3. Commit changes  
-4. Open a Pull Request  
-
----
-
-## 📄 License
-
-MIT License (recommended)
-
----
-
-## ⭐ Support
-
-If you find this useful, consider giving it a ⭐!
+- Point-in-polygon lookup uses **Shapely** with an `lru_cache` so the GeoJSON
+  is parsed once and held in memory.
+- If a clicked point falls outside all known pincode polygons the API returns
+  `"found": false` and uses `"000000"` as a placeholder pincode; the UI shows a
+  warning banner.
+- The Leaflet geocoder uses **Nominatim** (OpenStreetMap) with `countrycodes=in`
+  to bias results toward India.
