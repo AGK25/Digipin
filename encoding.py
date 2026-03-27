@@ -114,31 +114,40 @@ def encode_digipin(
 # ── Grid cell bounding box helper (used by Flask routes) ─────────────────────
 
 
-def cell_bounds(lat: float, lon: float, grid_size_m: int = GRID_SIZE_M) -> dict:
+def cell_bounds(
+    lat: float,
+    lon: float,
+    origin_lon: float,
+    origin_lat: float,
+    grid_size_m: int = GRID_SIZE_M,
+) -> dict:
     """
     Return the lat/lon bounding box of the 4 m × 4 m grid cell that contains
-    (lat, lon), as a GeoJSON-ready dict.
+    (lat, lon), snapped relative to the pincode origin.
     """
-    # Approximate degrees per metre at this latitude
-    lat_deg_per_m = 1.0 / (EARTH_RADIUS_M * math.pi / 180.0)
-    lon_deg_per_m = lat_deg_per_m / math.cos(math.radians(lat))
+    # 1. Calculate how many meters we are from the origin
+    dx_m, dy_m = lonlat_to_meters_delta(lon, lat, origin_lon, origin_lat)
 
-    half_lat = (grid_size_m / 2.0) * lat_deg_per_m
-    half_lon = (grid_size_m / 2.0) * lon_deg_per_m
+    # 2. Find the grid cell index (steps of 4m from origin)
+    steps_x = math.floor(dx_m / grid_size_m)
+    steps_y = math.floor(dy_m / grid_size_m)
 
-    # Snap to grid
-    snapped_lat = (
-        math.floor(lat / (grid_size_m * lat_deg_per_m)) * grid_size_m * lat_deg_per_m
-    )
-    snapped_lon = (
-        math.floor(lon / (grid_size_m * lon_deg_per_m)) * grid_size_m * lon_deg_per_m
-    )
+    # 3. Determine the SW corner in meters relative to origin
+    sw_dx = steps_x * grid_size_m
+    sw_dy = steps_y * grid_size_m
+
+    # 4. Convert meters back to approx Lat/Lon degrees
+    lat_deg_per_m = 1.0 / (111320.0)
+    lon_deg_per_m = 1.0 / (111320.0 * math.cos(math.radians(origin_lat)))
+
+    sw_lat = origin_lat + (sw_dy * lat_deg_per_m)
+    sw_lon = origin_lon + (sw_dx * lon_deg_per_m)
+
+    ne_lat = sw_lat + (grid_size_m * lat_deg_per_m)
+    ne_lon = sw_lon + (grid_size_m * lon_deg_per_m)
 
     return {
-        "sw": [snapped_lat, snapped_lon],
-        "ne": [
-            snapped_lat + grid_size_m * lat_deg_per_m,
-            snapped_lon + grid_size_m * lon_deg_per_m,
-        ],
-        "center": [snapped_lat + half_lat, snapped_lon + half_lon],
+        "sw": [sw_lat, sw_lon],
+        "ne": [ne_lat, ne_lon],
+        "center": [(sw_lat + ne_lat) / 2, (sw_lon + ne_lon) / 2],
     }
