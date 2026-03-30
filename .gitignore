@@ -1,0 +1,31 @@
+# Ignore Python environments
+venv/
+.venv/
+env/
+bin/
+lib/
+lib64/
+include/
+scripts/
+pyvenv.cfg
+
+# Ignore Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ignore VS Code
+.vscode/
+
+# Ignore local Flask / Env
+.env
+instance/
+.pytest_cache/
+
+# Large GeoJSON data (keep the cleaned one for the presentation)
+pincode_boundary.geojson
+data/
+All_India_pincode_Boundary-19312.geojson
+
+# Logs
+*.log

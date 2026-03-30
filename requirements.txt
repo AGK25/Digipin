@@ -1,0 +1,12 @@
+ Web framework
+flask>=3.0
+ 
+# Spatial / geometry — point-in-polygon, polygon ring extraction
+shapely>=2.0
+ 
+# Production WSGI server (optional for dev, use: gunicorn -w 4 app:app)
+gunicorn>=21.0
+ 
+# Standard library only beyond this point:
+#   json, math, os, functools — all built-in, no install needed
+ 

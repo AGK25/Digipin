@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DigiPIN — Grid Encoder</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Leaflet Geocoder (Nominatim) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+
+<body>
+
+  <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+  <aside id="sidebar">
+
+    <header class="sidebar-header">
+      <div class="logo-mark">⬡</div>
+      <div>
+        <h1>DigiPIN</h1>
+        <p class="tagline">Precision grid address encoder</p>
+      </div>
+    </header>
+
+    <!-- Address search -->
+    <section class="panel" id="search-panel">
+      <label class="panel-label">Search location</label>
+      <div class="search-row">
+        <input id="address-input" type="text" placeholder="Type an address or place…" autocomplete="off" />
+        <button id="search-btn" title="Search">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="8.5" cy="8.5" r="5.5" />
+            <line x1="13" y1="13" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div id="search-suggestions"></div>
+    </section>
+
+    <!-- Instructions -->
+    <section class="panel" id="hint-panel">
+      <p class="hint">
+        <span class="hint-icon">👆</span>
+        Click anywhere on the map to select a 4 m × 4 m grid cell and generate its DigiPIN.
+      </p>
+    </section>
+
+    <!-- Result card -->
+    <section class="panel result-card" id="result-panel" style="display:none">
+
+      <div class="result-header">
+        <span class="result-label">DigiPIN</span>
+        <button class="copy-btn" id="copy-btn" title="Copy to clipboard">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="7" y="7" width="10" height="12" rx="1.5" />
+            <path d="M13 7V4.5A1.5 1.5 0 0 0 11.5 3h-7A1.5 1.5 0 0 0 3 4.5v10A1.5 1.5 0 0 0 4.5 16H7" />
+          </svg>
+          <span id="copy-label">Copy</span>
+        </button>
+      </div>
+
+      <div class="digipin-display" id="digipin-display">
+        <span class="pin-part pin-pincode" id="res-pincode">——————</span>
+        <span class="pin-sep">·</span>
+        <span class="pin-part pin-letters" id="res-letters">————</span>
+      </div>
+
+      <dl class="meta-grid">
+        <div class="meta-item">
+          <dt>Pincode</dt>
+          <dd id="meta-pincode">—</dd>
+        </div>
+        <div class="meta-item">
+          <dt>Grid code</dt>
+          <dd id="meta-letters">—</dd>
+        </div>
+        <div class="meta-item">
+          <dt>Cell size</dt>
+          <dd id="meta-size">4 m × 4 m</dd>
+        </div>
+        <div class="meta-item">
+          <dt>Coordinates</dt>
+          <dd id="meta-coords">—</dd>
+        </div>
+        <div class="meta-item">
+          <dt>District/Area</dt>
+          <dd id="meta-location">—</dd>
+        </div>
+      </dl>
+
+      <div class="warning-banner" id="outside-warning" style="display:none">
+        ⚠️ If the point is outside all known pincode boundaries, pincode shown as <code>000000</code>.
+      </div>
+
+    </section>
+
+    <!-- Loading state -->
+    <div class="loading-bar" id="loading-bar"></div>
+
+    <footer class="sidebar-footer">
+      Grid size: <strong>4 m</strong> &nbsp;·&nbsp; CRS: WGS-84
+    </footer>
+
+  </aside>
+
+  <!-- ── Map ──────────────────────────────────────────────────────────────── -->
+  <main id="map-container">
+    <div id="map"></div>
+  </main>
+
+  <script src="/static/js/map.js"></script>
+</body>
+
+</html>
